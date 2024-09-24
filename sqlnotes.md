@@ -13,6 +13,9 @@ database connecting >sqlplus un/pw
 >select * from v$version;
 >quit
 
+ctrl+enter >to execute
+alt+f10 >new worksheet
+
 > archive log list;
 Database log mode              Archive Mode
 Automatic archival             Enabled
