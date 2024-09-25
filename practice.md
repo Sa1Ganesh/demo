@@ -58,3 +58,170 @@ print;
 SET AUTOPRINT ON;
 VARIABLE v_bind3 VARCHAR2(30);
 EXEC :v_bind3 :='love';
+/
+--conditional control statements
+--1.CASE STATEMENTS
+--2.IF STATEMENTS
+--i.IF THEN
+DECLARE
+f_name VARCHAR2(30) :='sai';
+l_name VARCHAR2(30) :='ganesh';
+BEGIN
+IF f_name='sai' and l_name='ganesh'
+THEN
+DBMS_OUTPUT.PUT_LINE('FULL NAME' ||' '||f_name||l_name);
+END IF;
+DBMS_OUTPUT.PUT_LINE('THANK YOU');
+END;
+/
+--IF THEN ELSE
+SET SERVEROUTPUT ON;
+DECLARE 
+v_num number :=&enter_a_number;
+BEGIN
+IF MOD(v_num,2)=0 THEN
+DBMS_OUTPUT.PUT_LINE(v_num ||' '||'is even');
+ELSE
+DBMS_OUTPUT.PUT_LINE(v_num||' '||'is odd');
+END IF;
+DBMS_OUTPUT.PUT_LINE('DONE');
+END;
+/
+--IF THEN ELSIF
+SET SERVEROUTPUT ON;
+DECLARE 
+v_game varchar2(30) :='&entergame';
+BEGIN
+IF v_game ='cricket' THEN 
+DBMS_OUTPUT.PUT_LINE('MSD');
+ELSIF v_game='badminton' THEN
+DBMS_OUTPUT.PUT_LINE('LEE CHONG WEI');
+ELSIF v_game='basketball' THEN
+DBMS_OUTPUT.PUT_LINE('JORDAN');
+END IF;
+DBMS_OUTPUT.PUT_LINE('THANK YOU');
+END;
+/
+--LOOPS(iterative statements)
+/*
+1.SIMPLE LOOP
+2.WHILE LOOP
+3.NUMERIC FOR LOOP
+4.CURSOR FOR LOOP
+*/
+--1.SIMPLE LOOP
+SET SERVEROUTPUT ON;
+DECLARE
+v_counter number :=&enter_a_number;
+v_result number;
+BEGIN
+LOOP
+--v_counter:=v_counter+1;
+v_result:=19*v_counter;
+DBMS_OUTPUT.PUT_LINE('19'||'x'||v_counter||'='||v_result);
+v_counter:=v_counter+1;
+EXIT WHEN v_counter>=10;
+END LOOP;
+END;
+/
+--2.WHILE LOOP
+SET SERVEROUTPUT ON;
+DECLARE
+v_counter number:=&enter_a_number;
+v_result number;
+BEGIN
+WHILE v_counter<=10 
+LOOP
+v_result:=15*v_counter;
+DBMS_OUTPUT.PUT_LINE('15x'||v_counter||'='||v_result);
+v_counter:=v_counter+1;
+END LOOP;
+END;
+/
+--3.FOR LOOP
+/*
+FOR loop_counter IN [REVERSE] lower limit.. upper_limit LOOP
+  Statement 1;
+  Statement 2;
+  …
+  Statement 3;
+END LOOP;
+*/
+SET SERVEROUTPUT ON;
+BEGIN
+  FOR v_counter IN 1..10 LOOP
+    DBMS_OUTPUT.PUT_LINE(v_counter);
+  END LOOP;
+END;
+/
+BEGIN
+  FOR v_counter IN REVERSE 1..10 LOOP
+    DBMS_OUTPUT.PUT_LINE(v_counter);
+  END LOOP;
+END;
+/
+DECLARE
+v_result number;
+BEGIN
+FOR v_counter IN 1..10 LOOP
+v_result :=19*v_counter;
+DBMS_OUTPUT.PUT_LINE(v_result);
+END LOOP;
+END;
+/
+--TRIGGERS
+CREATE TABLE TABLE1 (
+id number ,
+name varchar2(30),
+place varchar2(30)
+);
+INSERT INTO table1 ValUES (1,'sai','parthi');
+INSERT INTO table1 ValUES (2,'lokesh','brahmanapalli');
+INSERT INTO table1 ValUES (3,'akhil','kadapa');
+INSERT INTO table1 ValUES (4,'zahan','dubai');
+SELECT * FROM table1;
+--DROP TABLE table1;
+--1.DML TRIGGERS
+SET SERVEROUTPUT ON;
+CREATE OR REPLACE TRIGGER t_igger
+BEFORE INSERT ON table1
+FOR EACH ROW
+ENABLE
+DECLARE
+v_user varchar2(30);
+BEGIN
+SELECT user INTO v_user FROM dual ;
+DBMS_OUTPUT.PUT_LINE('You JUST inserted a row MR.'||v_user);
+END;
+/
+--INSERT INTO table1 VALUES('5','RAJESH','SH');
+CREATE OR REPLACE TRIGGER t_igger
+BEFORE UPDATE ON table1
+FOR EACH ROW
+ENABLE
+DECLARE
+v_user varchar2(30);
+BEGIN
+SELECT user INTO v_user FROM dual;
+DBMS_OUTPUT.PUT_LINE('you just updated a row Mr.'||v_user);
+END;
+/
+--UPDATE table1 SET place='SuperHospital' where id=5;
+CREATE OR REPLACE  TRIGGER t_igger
+BEFORE INSERT OR DELETE OR UPDATE ON table1
+FOR EACH ROW
+ENABLE
+DECLARE
+v_user varchar2(30);
+BEGIN
+SELECT user INTO v_user FROM dual;
+IF INSERTING THEN
+DBMS_OUTPUT.PUT_LINE('you just updated a row Mr.'||v_user);
+ELSIF DELETING THEN 
+DBMS_OUTPUT.PUT_LINE('you deleted a row Mr.'||v_user);
+ELSIF UPDATING THEN
+DBMS_OUTPUT.PUT_LINE('you just updated a row Mr.'||v_user);
+END IF;
+END;
+/
+--UPDATE table1 SET place='Superhospital' where id=5;
