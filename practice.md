@@ -225,3 +225,55 @@ END IF;
 END;
 /
 --UPDATE table1 SET place='Superhospital' where id=5;
+
+CREATE TABLE t_audit (
+new_name varchar2(30),
+old_name varchar2(30),
+user_name varchar2(30),
+entry_date varchar2(30),
+operation varchar2(30)
+);
+select * from t_audit;
+--DROP TABLE t_audit;
+CREATE OR REPLACE TRIGGER t_igger
+BEFORE INSERT OR DELETE OR UPDATE ON table1
+FOR EACH ROW
+ENABLE
+DECLARE
+v_user varchar2(30);
+v_date varchar2(30);
+BEGIN 
+SELECT user ,TO_CHAR(sysdate,'DD/MM/YYYY HH24:MI:SS')INTO v_user ,v_date FROM dual;
+IF INSERTING THEN
+INSERT INTO t_audit VALUES(:new.name,null,v_user,v_date,'INSERT');
+ELSIF DELETING THEN
+INSERT INTO t_audit VALUES(null,:old.name,v_user,v_date,'DELETE');
+ELSIF UPDATING THEN
+INSERT INTO t_audit VALUES(:new.name,:old.name,v_user,v_date,'UPDATE');
+END IF;
+END;
+/
+--UPDATE table1 SET place='superhospital' where id=5;
+--INSERT INTO table1 VALUES('6','rahul','bellandur');
+--DELETE FROM table1 WHERE ID=5;
+--Synchronized Table Backup
+CREATE TABLE table1_backup AS SELECT * FROM table1 ;
+--DROP TABLE table1_backup;
+SELECT * FROM table1;
+SELECT * FROM table1_backup;
+CREATE OR REPLACE TRIGGER t_igger
+BEFORE INSERT OR DELETE OR UPDATE ON table1
+FOR EACH ROW
+ENABLE
+BEGIN
+IF INSERTING THEN
+    INSERT INTO table1_backup  VALUES (:new.id,:NEW.NAME,:new.place);  
+  ELSIF DELETING THEN
+    DELETE FROM table1_backup WHERE NAME =:old.name; 
+  ELSIF UPDATING THEN
+    UPDATE table1_backup 
+    SET NAME =:new.name WHERE NAME =:old.name;
+  END IF;
+END;
+/
+--INSERT INTO table1 VALUES('7','shanka','bellandur');
