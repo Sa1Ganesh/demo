@@ -188,3 +188,73 @@ decode(s_name ,
 'sai','sa1',
 'ram','r@m',
 'not same') name from example;
+-- Loops 
+--i.Simple Loop
+/*
+LOOP
+Statement 1;
+Statement 2;
+…
+Statement 3;
+END LOOP;
+*/
+SET SERVEROUTPUT ON;
+DECLARE
+v_num number :=0;
+v_mul number:=&enter_a_num;
+v_result number;
+BEGIN
+LOOP
+v_num :=v_num+1;
+v_result :=v_num*v_mul;
+DBMS_OUTPUT.PUT_LINE( v_mul || 'x'|| v_num ||'='||v_result);
+exit when v_num>=10;
+END LOOP;
+END;
+/
+--ii.WHILE Loop 
+/*
+WHILE condition LOOP
+Statement 1;
+Statemen 2;
+…
+Statement 3;
+END LOOP;
+*/
+SET SERVEROUTPUT ON;
+DECLARE
+v_num number:=1;
+v_result number;
+v_mul number:=&enter_a_num;
+BEGIN
+WHILE v_num<=10
+LOOP
+v_result :=v_mul*v_num;
+DBMS_OUTPUT.PUT_LINE(v_mul||'x'||v_num||'='||v_result);
+v_num:=v_num+1;
+END LOOP;
+DBMS_OUTPUT.PUT_LINE('while loop');
+END;
+/
+--iii.Numeric FOR loop
+/*
+FOR loop_counter IN [REVERSE] lower limit.. upper_limit LOOP
+  Statement 1;
+  Statement 2;
+  …
+  Statement 3;
+END LOOP;
+*/
+SET SERVEROUTPUT ON;
+DECLARE
+v_result number;
+v_mul number:=&enter_a_num;
+BEGIN
+FOR v_num in 1..10
+LOOP
+v_result :=v_mul*v_num;
+DBMS_OUTPUT.PUT_LINE(v_mul||'x'||v_num||'='||v_result);
+END LOOP;
+DBMS_OUTPUT.PUT_LINE('while loop');
+END;
+/
