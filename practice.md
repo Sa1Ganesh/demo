@@ -492,3 +492,255 @@ END;
 /
 insert into vw_rebellionrider values('sai','cricket');
 drop trigger tr_Io_Insert;
+--CURSORS
+/*
+STEP1:Declare
+CURSOR cursor_name IS select_statement;
+STEP2:Open
+OPEN cursor_name;
+STEP3:Fetch
+FETCH cursor_name INTO PL/SQL variable;
+Or 
+FETCH cursor_name INTO PL/SQL record;
+STEP4:Close
+CLOSE cursor_name;
+
+EX:
+DECLARE
+	CURSOR cursor_name IS select_statement; 
+BEGIN
+	 OPEN cursor_name;
+	 FETCH cursor_name INTO PL/SQL variable [PL/SQL record]; 
+CLOSE cursor_name; 
+END;
+/
+Cursor Attributes
+%FOUND
+%NOTFOUND
+%ISOPEN
+%ROWCOUNT
+*/
+SELECT * from example;
+SET SERVEROUTPUT ON;
+DECLARE
+v_name varchar2(30);
+CURSOR cur_n IS 
+select s_name from example where s_id<5;
+BEGIN
+OPEN cur_n;
+loop
+FETCH cur_n into v_name ;
+dbms_output.put_line(v_name);
+exit when cur_n%notfound;
+end loop;
+END;
+/
+--Parameterized cursor
+/*
+CURSOR cur _ name (parameter list) IS SELECT statement;
+OPEN cur _ name (argument list)
+*/
+SET SERVEROUTPUT ON;
+DECLARE
+v_name varchar2(30);
+CURSOR cur_n(var_id varchar2)IS 
+select s_name from example where s_id<var_id;
+BEGIN
+OPEN cur_n(4);
+loop
+FETCH cur_n into v_name ;
+dbms_output.put_line(v_name);
+exit when cur_n%notfound;
+end loop;
+END;
+/
+DECLARE
+v_name varchar2(30);
+v_place varchar2(30);
+CURSOR cur_n(var_id varchar2:=4)IS 
+select s_name,s_place from example where s_id<var_id;
+BEGIN
+OPEN cur_n(3);
+loop
+FETCH cur_n into v_name,v_place ;
+dbms_output.put_line(v_name||' '||v_place);
+exit when cur_n%notfound;
+end loop;
+close cur_n;
+END;
+/
+--Cursor For Loop
+/*
+DECLARE
+	CURSOR cursor_name IS select_statement; 
+BEGIN    
+FOR loop_index IN cursor_name 
+	LOOP
+		Statements…
+	END LOOP;
+END;
+*/
+DECLARE
+CURSOR cur_n(var_id varchar2) IS 
+select s_name ,s_place from example where s_id<var_id;
+BEGIN
+FOR LIDX in cur_n(4)
+loop
+dbms_output.put_line(lidx.s_name||' '||lidx.s_place);
+end loop;
+END;
+/
+--RECORDS
+--i.Table Based Record
+/*
+Variable_ name   table_name%ROWTYPE;
+-To Access data from record variable.
+Record_variable_name.column_name_of_the_table; 
+*/
+DECLARE
+v_exa example%rowtype;
+BEGIN
+select * into v_exa from example where s_id=1;
+dbms_output.put_line(v_exa.s_name||' '||v_exa.s_place);
+END;
+/
+DECLARE
+v_exa example%rowtype;
+BEGIN
+select s_name,s_place  into v_exa.s_name,v_exa.s_place from example where s_id=1;
+dbms_output.put_line(v_exa.s_name||' '||v_exa.s_place);
+END;
+/
+--ii.Cursor based Record
+/*
+Variable_ name   cursor_name%ROWTYPE;
+*/
+set serveroutput on;
+DECLARE
+CURSOR cur_n IS 
+select s_name,s_place from example where s_id<4;
+v_exa cur_n%rowtype;
+BEGIN
+OPEN cur_n;
+loop
+FETCH cur_n into v_exa;
+dbms_output.put_line(v_exa.s_name||' '||v_exa.s_place);
+exit when cur_n%notfound;
+end loop;
+close cur_n;
+END;
+/
+--iii.User defined Record 
+/*
+TYPE type_name IS RECORD (
+field_name1 datatype 1,
+field_name2 datatype 2,
+...
+field_nameN datatype N 
+);
+
+record_name TYPE_NAME;
+*/
+set serveroutput on;
+DECLARE
+type type_n is record (
+v_n varchar2(30),
+v_p varchar2(30)
+);
+var_e type_n;
+BEGIN
+select s_name ,s_place into var_e.v_n ,var_e.v_p from example where s_id=1;
+dbms_output.put_line(var_e.v_n||' '||var_e.v_p);
+END;
+/
+--Functions 
+/*
+CREATE [OR REPLACE] FUNCTION function_name
+(Parameter 1, Parameter 2…)
+RETURN datatype
+IS
+	Declare variable, constant etc.  
+BEGIN
+	Executable Statements
+	Return (Return Value);
+END;
+*/
+create or replace function c_area (radius number)
+return number is
+pi constant number :=3.141;
+area number;
+BEGIN
+area:=pi*(radius * radius);
+return area;
+END;
+/
+set serveroutput on;
+declare 
+var_a number;
+begin
+var_a:=c_area(5);
+dbms_output.put_line(var_a);
+--dbms_output.put_line(c_area(5));
+end;
+/
+--PROCEDURES
+/*
+CREATE [OR REPLACE] PROCEDURE pro_name (Parameter – List)
+IS [AUTHID 	DEFINER | CURRENT_USER]
+	Declare statements
+BEGIN
+	Executable statements 
+END procedure name;
+/ 
+*/
+create or replace procedure proc_n is
+var_name varchar2(30):='sai ganesh';
+var_fav varchar2(30):='cricket';
+BEGIN
+dbms_output.put_line ('myself' ||' '||var_name ||' '||'my fav game is'||' '||var_fav);
+END;
+/
+--calling 
+exec proc_n;
+begin
+proc_n;
+end;
+/
+select * from example;
+alter table example add salary number;
+update example set salary =45000;
+create or replace procedure proc_n(d_id number, sal_raise number) is
+BEGIN
+update example set salary =salary*sal_raise where s_id=d_id;
+END;
+/
+exec proc_n(2,2);
+execute proc_n(3,4);
+begin
+proc_n(1,3);
+end;
+/
+-- Calling Notations
+CREATE OR REPLACE FUNCTION add_num
+(var_1 NUMBER, var_2 NUMBER DEFAULT 0, var_3 NUMBER ) RETURN NUMBER 
+IS
+BEGIN
+  RETURN var_1 + var_2 + var_3;
+END;
+/
+--Named Calling Notation
+DECLARE
+  var_result  NUMBER;
+BEGIN
+  var_result := add_num(var_3 => 5, var_1 =>2);
+  DBMS_OUTPUT.put_line('Result ->' || var_result);
+END;
+/
+-- Mixed calling notation
+DECLARE
+  var_result  NUMBER;
+BEGIN
+  var_result := add_num(var_1 => 10, 30 ,var_3 =>19);
+  DBMS_OUTPUT.put_line('Result ->' || var_result);
+END;
+/
