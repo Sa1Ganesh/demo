@@ -258,3 +258,237 @@ END LOOP;
 DBMS_OUTPUT.PUT_LINE('while loop');
 END;
 /
+--TRIGGERS
+/*
+CREATE [OR REPLACE] TRIGGER Ttrigger_name
+{BEFORE|AFTER} Triggering_event ON table_name
+[FOR EACH ROW]
+[FOLLOWS another_trigger_name]
+[ENABLE/DISABLE]
+[WHEN condition]
+DECLARE
+  declaration statements
+BEGIN
+  executable statements
+EXCEPTION
+  exception-handling statements
+END;
+*/
+--i.DML Triggers
+CREATE TABLE table_1 (t_name varchar2(30));
+--drop table table_1;
+SET SERVEROUTPUT ON;
+CREATE TRIGGER trig 
+before insert or update or delete on table_1
+for each row 
+enable
+declare 
+v_user varchar2(30);
+BEGIN
+select user into v_user from dual;
+IF INSERTING THEN
+DBMS_OUTPUT.PUT_LINE('INSERTED'||v_user);
+ELSIF DELETING THEN
+DBMS_OUTPUT.PUT_LINE('DELETED'||v_user);
+ELSIF UPDATING THEN
+DBMS_OUTPUT.PUT_LINE('UPDATED'||v_user);
+END IF;
+END;
+/
+INSERT INTO table_1 values('sai');
+delete from table_1;
+alter trigger trig disable;
+drop trigger trig;
+--Table Auditing Using DML Triggers
+CREATE TABLE t1_audit(
+  new_name varchar2(30),
+  old_name varchar2(30),
+  user_name varchar2(30),
+  entry_date varchar2(30),
+  operation  varchar2(30)
+);
+select * from t1_audit;
+--DROP TABLE t1_audit;
+create or replace trigger trig 
+before insert or update or delete on table_1
+for each row
+enable
+DECLARE
+v_user varchar2(30);
+v_date varchar2(30);
+BEGIN
+select user ,to_char(sysdate,'dd/mm/yyyy hh24:mi:ss:') into v_user ,v_date from dual;
+IF INSERTING THEN
+INSERT INTO t1_audit VALUES(:new.t_name,NULL,V_USER,V_DATE,'INSERT');
+ELSIF DELETING THEN
+INSERT INTO t1_audit VALUES(NULL,:old.t_name,V_USER,V_DATE,'DELETE');
+ELSIF UPDATING THEN
+INSERT INTO t1_audit VALUES(:new.t_name,:old.t_name,V_USER,V_DATE,'UPDATE');
+END IF;
+END;
+/
+insert into table_1 values('sai');
+update table_1 set t_name='sathya';
+delete from table_1;
+--synchronized backup copy of a table
+desc table_1;
+create table tablebackup_1 as select * from table_1 ;
+select * from tablebackup_1;
+drop table tablebackup_1;
+create or replace trigger trig 
+before insert or delete or update on table_1
+for each row 
+enable
+BEGIN
+IF INSERTING THEN 
+insert into tablebackup_1 values(:new.t_name);
+ELSIF DELETING THEN
+delete from tablebackup_1 where t_name=:old.t_name;
+ELSIF UPDATING THEN 
+update tablebackup_1 set t_name =:new.t_name where t_name=:old.t_name;
+END IF;
+END;
+/
+--ii.DDL Triggers
+--Schema & Database Auditing 
+CREATE TABLE schema_audit
+  (
+    ddl_date       DATE,
+    ddl_user       VARCHAR2(15),
+    object_created VARCHAR2(15),
+    object_name    VARCHAR2(15),
+    ddl_operation  VARCHAR2(15)
+  );
+select * from schema_audit;
+drop table schema_audit;
+create or replace trigger trig 
+after ddl on schema
+begin
+insert into schema_audit values(sysdate,sys_context('USERENV','CURRENT_USER'),ora_dict_obj_type,ora_dict_obj_name,ora_sysevent);
+end;
+/
+create or replace trigger trig 
+after ddl on DATABASE
+begin
+insert into schema_audit values(sysdate,sys_context('USERENV','CURRENT_USER'),ora_dict_obj_type,ora_dict_obj_name,ora_sysevent);
+end;
+/
+CREATE TABLE SAMP (C_1 NUMBER);
+DROP TABLE SAMP;
+--iii.Database Event Triggers.
+/*
+CREATE OR REPLACE TRIGGER trigger_name
+BEFORE | AFTER database_event ON database/schema
+BEGIN
+	PL/SQL Code
+END;
+/
+*/
+CREATE TABLE event_audit
+  (
+    event_type VARCHAR2(30),
+    logon_date DATE,
+    logon_time VARCHAR2(15),
+    logof_date DATE,
+    logof_time VARCHAR2(15)
+  );
+select * from event_audit;
+create or replace  trigger   trig
+after logon on schema 
+begin
+insert into event_audit values(
+ora_sysevent,
+sysdate,
+to_char(sysdate,'hh24:mi:ss'),
+null,
+null
+);
+end;
+/
+disc;
+conn system/sathya;
+create or replace  trigger   trig
+before logoff on schema 
+begin
+insert into event_audit values(
+ora_sysevent,
+null,
+null,
+sysdate,
+to_char(sysdate,'hh24:mi:ss')
+);
+end;
+/
+-- Database event Startup and Shutdown Triggers.
+CREATE TABLE startup_audit 
+(
+  Event_type  VARCHAR2(15),
+  event_date  DATE,
+  event_time  VARCHAR2(15)
+);
+select * from startup_audit ;
+CREATE OR REPLACE TRIGGER startup_audit
+AFTER STARTUP ON DATABASE
+BEGIN
+  INSERT INTO startup_audit VALUES
+(
+    ora_sysevent,
+    SYSDATE,
+    TO_CHAR(sysdate, 'hh24:mm:ss')
+  );
+END;
+/
+drop trigger startup_audit;
+CREATE OR REPLACE TRIGGER tr_shutdown_audit
+BEFORE SHUTDOWN ON DATABASE
+BEGIN
+  INSERT INTO startup_audit VALUES(
+    ora_sysevent,
+    SYSDATE,
+    TO_CHAR(sysdate, 'hh24:mm:ss')
+  );
+END;
+/
+drop trigger tr_shutdown_audit;
+--iv.Instead-Of Insert Triggers
+/*
+CREATE [OR REPLACE] TRIGGER trigger_name
+INSTEAD OF operation
+ON view_name
+FOR EACH ROW
+BEGIN
+	---Your SQL Code—
+END;
+/
+*/
+CREATE TABLE trainer
+  ( 
+    full_name VARCHAR2(20)
+  );
+select * from trainer;
+--drop table  trainer;
+CREATE TABLE subject
+  ( 
+    subject_name VARCHAR2(15)
+  );
+select * from subject;
+--drop table subject;
+
+INSERT INTO trainer VALUES ('Manish Sharma');
+INSERT INTO subject VALUES ('Oracle');
+
+CREATE VIEW vw_rebellionrider AS
+SELECT full_name, subject_name FROM trainer, subject;
+select * from vw_rebellionrider;
+--drop view vw_rebellionrider;
+
+CREATE OR REPLACE TRIGGER tr_Io_Insert
+INSTEAD OF INSERT ON vw_rebellionrider
+FOR EACH ROW
+BEGIN
+  INSERT INTO trainer (full_name) VALUES (:new.full_name);
+  INSERT INTO subject (subject_name) VALUES (:new.subject_name);
+END;
+/
+insert into vw_rebellionrider values('sai','cricket');
+drop trigger tr_Io_Insert;
