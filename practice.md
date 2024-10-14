@@ -744,3 +744,92 @@ BEGIN
   DBMS_OUTPUT.put_line('Result ->' || var_result);
 END;
 /
+--Packages
+/*
+Package Specification
+
+CREATE OR REPALCE PACKAGE pkg_name IS
+	Declaration of all the package element…;
+END [pkg_name]; 
+
+Package Body
+
+CREATE OR REPALCE PACKAGE BODY pkg_name IS
+	Variable declaration;
+	Type Declaration;
+BEGIN
+	Implementation of the package elements…
+END [pkg_name];
+*/
+create or replace package pkg is 
+FUNCTION p_strng RETURN VARCHAR2;
+procedure proc_n(d_id number, sal_raise number);
+end pkg;
+/
+create or replace package body pkg is
+FUNCTION p_strng RETURN VARCHAR2 is 
+BEGIN 
+return 'package';
+END p_strng;
+procedure proc_n(d_id number, sal_raise number) is
+BEGIN
+update example set salary =salary*sal_raise where s_id=d_id;
+END;
+END pkg;
+/
+exec proc_n(4,2);
+begin
+ DBMS_OUTPUT.PUT_LINE (pkg.p_strng);
+end;
+/
+-- Exception Handling 
+--i.User-Define Exception Using An Exception Variable
+set serveroutput on;
+DECLARE
+var_n number :=&enter_number;
+var_d number :=&enter_divisor;
+var_r number;
+ex_divzero EXCEPTION;
+BEGIN
+IF var_d =0 THEN
+RAISE ex_divzero;
+end if;
+var_r :=var_n/var_d;
+DBMS_OUTPUT.PUT_LINE('Result = ' ||var_r);
+EXCEPTION when ex_divzero THEN
+DBMS_OUTPUT.PUT_LINE('error - divisor is zero');
+END;
+/
+--ii.User-Define Exception Using RAISE_APPLICATION_ERROR
+/*
+raise_application_error (error_number, message [, {TRUE | FALSE}]);
+*/
+SET SERVEROUTPUT ON;
+ACCEPT var_age NUMBER PROMPT 'What is yor age';
+DECLARE
+  age   NUMBER := &var_age;
+BEGIN
+  IF age < 18 THEN
+    RAISE_APPLICATION_ERROR (-20008, 'you should be 18 or above for the DRINK!');
+  END IF; 
+  DBMS_OUTPUT.PUT_LINE ('Sure, What would you like to have?'); 
+  EXCEPTION WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE (SQLERRM);
+END;
+/ 
+--iii.User Define Exception Using PRAGMA EXCEPTION_INIT
+DECLARE
+  ex_age    EXCEPTION;
+  age       NUMBER    := 17;
+  PRAGMA EXCEPTION_INIT(ex_age, -20008);
+BEGIN
+  IF age<18 THEN
+    RAISE_APPLICATION_ERROR(-20008, 'You should be 18 or above for the drinks!');
+  END IF;
+  
+  DBMS_OUTPUT.PUT_LINE('Sure! What would you like to have?');
+  
+  EXCEPTION WHEN ex_age THEN
+    DBMS_OUTPUT.PUT_LINE(SQLERRM);   
+END;
+/
