@@ -1,5 +1,5 @@
 # demo
 My first git repository
 <br>
-author-saiganesh sathya
+Author - Sai Ganesh 
 
